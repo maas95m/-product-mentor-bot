@@ -3,11 +3,12 @@ from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKe
 from aiogram.filters import CommandStart
 from aiogram.enums import ParseMode
 from aiogram.client.default import DefaultBotProperties
+from aiohttp import web
 import asyncio
-
 import os
 
 TOKEN = os.getenv("BOT_TOKEN")
+PORT = int(os.getenv("PORT", 10000))
 
 bot = Bot(
     token=TOKEN,
@@ -127,7 +128,6 @@ def guarantee_menu():
     )
 
 
-
 @dp.message(CommandStart())
 async def start_handler(message: Message):
     await message.answer(
@@ -146,76 +146,69 @@ async def start_handler(message: Message):
 
 @dp.callback_query(F.data == "account")
 async def account_handler(callback: CallbackQuery):
-    await callback.message.edit_text(
-        "Материалы по расчетному счету:",
-        reply_markup=account_menu()
-    )
+    await callback.message.edit_text("Материалы по расчетному счету:", reply_markup=account_menu())
 
 
 @dp.callback_query(F.data == "acquiring")
 async def acquiring_handler(callback: CallbackQuery):
-    await callback.message.edit_text(
-        "Материалы по эквайрингу:",
-        reply_markup=acquiring_menu()
-    )
+    await callback.message.edit_text("Материалы по эквайрингу:", reply_markup=acquiring_menu())
 
 
 @dp.callback_query(F.data == "payroll")
 async def payroll_handler(callback: CallbackQuery):
-    await callback.message.edit_text(
-        "Материалы по зарплатному проекту:",
-        reply_markup=payroll_menu()
-    )
+    await callback.message.edit_text("Материалы по зарплатному проекту:", reply_markup=payroll_menu())
 
 
 @dp.callback_query(F.data == "bcard")
 async def bcard_handler(callback: CallbackQuery):
-    await callback.message.edit_text(
-        "Материалы по бизнес-картам:",
-        reply_markup=bcard_menu()
-    )
+    await callback.message.edit_text("Материалы по бизнес-картам:", reply_markup=bcard_menu())
 
 
 @dp.callback_query(F.data == "creditcard")
 async def creditcard_handler(callback: CallbackQuery):
-    await callback.message.edit_text(
-        "Материалы по кредитной бизнес-карте:",
-        reply_markup=creditcard_menu()
-    )
+    await callback.message.edit_text("Материалы по кредитной бизнес-карте:", reply_markup=creditcard_menu())
 
 
 @dp.callback_query(F.data == "credits")
 async def credits_handler(callback: CallbackQuery):
-    await callback.message.edit_text(
-        "Материалы по кредитам:",
-        reply_markup=credits_menu()
-    )
+    await callback.message.edit_text("Материалы по кредитам:", reply_markup=credits_menu())
 
 
 @dp.callback_query(F.data == "deposits")
 async def deposits_handler(callback: CallbackQuery):
-    await callback.message.edit_text(
-        "Материалы по депозитам:",
-        reply_markup=deposits_menu()
-    )
+    await callback.message.edit_text("Материалы по депозитам:", reply_markup=deposits_menu())
 
 
 @dp.callback_query(F.data == "guarantee")
 async def guarantee_handler(callback: CallbackQuery):
-    await callback.message.edit_text(
-        "Материалы по банковским гарантиям:",
-        reply_markup=guarantee_menu()
-    )
-
+    await callback.message.edit_text("Материалы по банковским гарантиям:", reply_markup=guarantee_menu())
 
 
 @dp.callback_query(F.data == "back_main")
 async def back_handler(callback: CallbackQuery):
-    await callback.message.edit_text(
-        "Выберите продукт для изучения:",
-        reply_markup=main_menu()
-    )
+    await callback.message.edit_text("Выберите продукт для изучения:", reply_markup=main_menu())
+
+
+# HTTP-заглушка для Render
+async def health_check(request):
+    return web.Response(text="Bot is running")
+
+
+async def start_web_server():
+    app = web.Application()
+    app.router.add_get("/", health_check)
+    runner = web.AppRunner(app)
+    await runner.setup()
+    site = web.TCPSite(runner, "0.0.0.0", PORT)
+    await site.start()
+    print(f"Web server started on port {PORT}")
 
 
 async def main():
+    await start_web_server()
+    print("Starting bot polling...")
     await dp.start_polling(bot)
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
