@@ -5,7 +5,9 @@ from aiogram.enums import ParseMode
 from aiogram.client.default import DefaultBotProperties
 import asyncio
 
-TOKEN = "8776241574:AAEInesfyjcu_ljNcfS61PaVKfoAyNIBufE"
+import os
+
+TOKEN = os.getenv("BOT_TOKEN")
 
 bot = Bot(
     token=TOKEN,
@@ -217,7 +219,3 @@ async def back_handler(callback: CallbackQuery):
 
 async def main():
     await dp.start_polling(bot)
-
-
-if __name__ == "__main__":
-    asyncio.run(main())
